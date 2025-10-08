@@ -96,8 +96,8 @@ func (handler *EmailIns) Verify() http.HandlerFunc {
 		if loaded.Hash == hash {
 			json.NewEncoder(w).Encode(true)
 		} else {
-			os.Remove("user.json")
 			json.NewEncoder(w).Encode(false)
 		}
+		os.Remove("user.json")
 	}
 }
