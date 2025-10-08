@@ -1,6 +1,7 @@
 package verify
 
 import (
+	"encoding/json"
 	"fmt"
 	"http/configs"
 	"net/http"
@@ -12,6 +13,8 @@ import (
 type EmailIns struct {
 	*configs.Config
 }
+
+const hashStr = "123"
 
 func NewEmail(router *http.ServeMux, config *configs.Config) {
 	emailIns := &EmailIns{
@@ -28,13 +31,22 @@ func (handler *EmailIns) Send() http.HandlerFunc {
 		e.From = FromMsg
 		e.To = []string{handler.Addr}
 		e.Subject = "Awesome Subject"
-		e.Text = []byte("Text Body is, of course, supported!")
+		text := fmt.Sprintf("http://localhost:8081/verify/%s", hashStr)
+		e.Text = []byte(text)
 		e.HTML = []byte("<h1>Fancy HTML is supported, too!</h1>")
 		e.Send("smtp.gmail.com:587", smtp.PlainAuth("", handler.Email, handler.Pass, "smtp.gmail.com"))
+		json.NewEncoder(w).Encode(text)
 	}
 }
 
 func (handler *EmailIns) Verify() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		hash := req.PathValue("hash")
+		if hash == hashStr {
+			json.NewEncoder(w).Encode(true)
+		} else {
+			json.NewEncoder(w).Encode(false)
+		}
+
 	}
 }
